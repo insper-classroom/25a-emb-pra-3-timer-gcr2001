@@ -116,11 +116,10 @@ int main()
 {
     char command[10] = {0};  // Buffer para armazenar o comando
     int index = 0;
-    int caracter;
 
     while (index < 9) 
     {   
-        caracter = getchar_timeout_us(100000); // Espera até 100ms 
+        int caracter = getchar_timeout_us(100000); // Espera até 100ms 
 
         if (caracter == PICO_ERROR_TIMEOUT)
         {
