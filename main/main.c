@@ -49,7 +49,7 @@ void gpio_callback(uint gpio, uint32_t events)
 static void rtc_callback(void)
 {
     sec_fired = true;
-    printf("fired\n");
+    //printf("fired\n");
 }
 
 // Função para medir distância
@@ -71,7 +71,7 @@ void print_timestamp()
 }
 
 // Função principal de leitura
-void read_sensor()
+void read_sensor(bool running)
 {
     if (!running)
         return;
@@ -110,6 +110,8 @@ int main()
     rtc_init();
 
     printf("Digite 'Start' para iniciar e 'Stop' para parar.\n");
+
+    bool running = false;
     while (true)
 {
     char command[10] = {0};  // Buffer para armazenar o comando
@@ -118,7 +120,7 @@ int main()
 
     while (index < 9) 
     {   
-        caracter = getchar_timeout_us(100000); // Espera até 100ms por um caractere
+        caracter = getchar_timeout_us(100000); // Espera até 100ms 
 
         if (caracter == PICO_ERROR_TIMEOUT)
         {
@@ -146,7 +148,7 @@ int main()
         printf("Leitura parada.\n");
     }
 
-    read_sensor();
+    read_sensor(running);
     sleep_ms(500);
 }
 }
