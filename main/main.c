@@ -12,7 +12,6 @@
 #include <string.h>
 #include "hardware/timer.h"
 
-
 const int ECHO_PIN = 15;
 const int TRIG_PIN = 16;
 
@@ -32,15 +31,15 @@ int64_t alarm_callback(alarm_id_t id, void *user_data)
 
 void gpio_callback(uint gpio, uint32_t events)
 {
-    if (events == GPIO_IRQ_EDGE_RISE) 
+    if (events == GPIO_IRQ_EDGE_RISE)
     {
-        time_init = to_us_since_boot(get_absolute_time());  // Começa a contar tempo
+        time_init = to_us_since_boot(get_absolute_time()); // Começa a contar tempo
         timeout_fired = false;
         add_alarm_in_us(TIMEOUT_US, alarm_callback, NULL, false);
     }
     else if (events == GPIO_IRQ_EDGE_FALL)
     {
-        time_end = to_us_since_boot(get_absolute_time());  // Finaliza contagem
+        time_end = to_us_since_boot(get_absolute_time()); // Finaliza contagem
         measuring = false;
     }
 }
@@ -48,7 +47,7 @@ void gpio_callback(uint gpio, uint32_t events)
 static void rtc_callback(void)
 {
     sec_fired = true;
-    //printf("fired\n");
+    // printf("fired\n");
 }
 
 // Função para medir distância
@@ -64,9 +63,12 @@ void measure_distance()
 // Função para obter tempo atual
 void print_timestamp()
 {
-    datetime_t t;
+    datetime_t t = {0};
     rtc_get_datetime(&t);
-    printf("%02d:%02d:%02d - ", t.hour, t.min, t.sec);
+    char datetime_buf[256];
+    char *datetime_str = &datetime_buf[0];
+    datetime_to_str(datetime_str, sizeof(datetime_buf), &t);
+    printf("%s - ", datetime_str);
 }
 
 // Função principal de leitura
@@ -106,47 +108,59 @@ int main()
     gpio_init(TRIG_PIN);
     gpio_set_dir(TRIG_PIN, GPIO_OUT);
 
-    rtc_init();
 
+    datetime_t t = {
+        .year  = 2020,
+        .month = 01,
+        .day   = 13,
+        .dotw  = 3, // 0 is Sunday, so 3 is Wednesday
+        .hour  = 11,
+        .min   = 20,
+        .sec   = 00
+    };
+
+    // Start the RTC
+    rtc_init();
+    rtc_set_datetime(&t);
     printf("Digite 'Start' para iniciar e 'Stop' para parar.\n");
 
     bool running = false;
     while (true)
-{
-    char command[10] = {0};  // Buffer para armazenar o comando
-    int index = 0;
-
-    while (index < 9) 
-    {   
-        int caracter = getchar_timeout_us(100000); // Espera até 100ms 
-
-        if (caracter == PICO_ERROR_TIMEOUT)
-        {
-            break; 
-        }
-        else if (caracter == '\n' || caracter == '\r')
-        {
-            command[index] = '\0'; 
-            break;
-        }
-        else
-        {
-            command[index++] = (char)caracter;
-        }
-    }
-
-    if (strcmp(command, "Start") == 0)
     {
-        running = true;
-        printf("Leitura iniciada.\n");
-    }
-    else if (strcmp(command, "Stop") == 0)
-    {
-        running = false;
-        printf("Leitura parada.\n");
-    }
+        char command[10] = {0}; // Buffer para armazenar o comando
+        int index = 0;
 
-    read_sensor(running);
-    sleep_ms(500);
-}
+        while (index < 9)
+        {
+            int caracter = getchar_timeout_us(100000); // Espera até 100ms
+
+            if (caracter == PICO_ERROR_TIMEOUT)
+            {
+                break;
+            }
+            else if (caracter == '\n' || caracter == '\r')
+            {
+                command[index] = '\0';
+                break;
+            }
+            else
+            {
+                command[index++] = (char)caracter;
+            }
+        }
+
+        if (strcmp(command, "Start") == 0)
+        {
+            running = true;
+            printf("Leitura iniciada.\n");
+        }
+        else if (strcmp(command, "Stop") == 0)
+        {
+            running = false;
+            printf("Leitura parada.\n");
+        }
+
+        read_sensor(running);
+        sleep_ms(500);
+    }
 }
