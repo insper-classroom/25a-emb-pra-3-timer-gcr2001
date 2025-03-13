@@ -21,7 +21,6 @@ volatile int time_end = 0;
 volatile bool timeout_fired = false;
 volatile bool sec_fired = false;
 volatile bool measuring = false;
-volatile bool running = false;
 
 const int TIMEOUT_US = 30000;
 
@@ -71,9 +70,9 @@ void print_timestamp()
 }
 
 // Função principal de leitura
-void read_sensor(bool running)
+void read_sensor(bool is_running)
 {
-    if (!running)
+    if (!is_running)
         return;
     measure_distance();
 
